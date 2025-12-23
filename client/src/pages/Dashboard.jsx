@@ -1,61 +1,45 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { taskAPI } from "../api";
-import { toast } from "react-toastify";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../store/authSlice";
+import {
+  fetchTasks,
+  createTask,
+  updateTask,
+  deleteTask,
+  setFilter as setTaskFilter,
+} from "../store/taskSlice";
 import TaskForm from "../components/TaskForm";
 import TaskList from "../components/TaskList";
 
 const Dashboard = () => {
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all");
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
-  const { user, logout } = useAuth();
+
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth);
+  const { tasks, loading, filter } = useSelector((state) => state.tasks);
 
   useEffect(() => {
-    fetchTasks();
-  }, [filter]);
-
-  const fetchTasks = async () => {
-    try {
-      setLoading(true);
-      const status = filter === "all" ? null : filter;
-      const response = await taskAPI.getTasks(status);
-      setTasks(response.data.tasks);
-    } catch (error) {
-      console.error("Error fetching tasks:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const status = filter === "all" ? null : filter;
+    dispatch(fetchTasks(status));
+  }, [filter, dispatch]);
 
   const handleCreateTask = async (taskData) => {
-    try {
-      const response = await taskAPI.createTask(taskData);
-      setTasks([response.data.task, ...tasks]);
+    const result = await dispatch(createTask(taskData));
+    if (result.type === "tasks/createTask/fulfilled") {
       setShowForm(false);
-      toast.success("Task created successfully!");
-    } catch (error) {
-      console.error("Error creating task:", error);
     }
   };
 
   const handleUpdateTask = async (taskData) => {
-    try {
-      const response = await taskAPI.updateTask(editingTask._id, taskData);
-      setTasks(
-        tasks.map((task) =>
-          task._id === editingTask._id ? response.data.task : task
-        )
-      );
+    const result = await dispatch(
+      updateTask({ id: editingTask._id, taskData })
+    );
+    if (result.type === "tasks/updateTask/fulfilled") {
       setEditingTask(null);
       setShowForm(false);
-      toast.success("Task updated successfully!");
-    } catch (error) {
-      console.error("Error updating task:", error);
     }
   };
 
@@ -63,14 +47,7 @@ const Dashboard = () => {
     if (!window.confirm("Are you sure you want to delete this task?")) {
       return;
     }
-
-    try {
-      await taskAPI.deleteTask(taskId);
-      setTasks(tasks.filter((task) => task._id !== taskId));
-      toast.success("Task deleted successfully!");
-    } catch (error) {
-      console.error("Error deleting task:", error);
-    }
+    dispatch(deleteTask(taskId));
   };
 
   const handleEditClick = (task) => {
@@ -84,8 +61,12 @@ const Dashboard = () => {
   };
 
   const handleLogout = () => {
-    logout();
+    dispatch(logout());
     navigate("/login");
+  };
+
+  const handleFilterChange = (newFilter) => {
+    dispatch(setTaskFilter(newFilter));
   };
 
   const getStatusCounts = () => {
@@ -157,7 +138,7 @@ const Dashboard = () => {
             {["all", "pending", "in-progress", "completed"].map((status) => (
               <button
                 key={status}
-                onClick={() => setFilter(status)}
+                onClick={() => handleFilterChange(status)}
                 className={`px-4 py-2 rounded-lg font-medium transition capitalize ${
                   filter === status
                     ? "bg-indigo-600 text-white"

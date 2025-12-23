@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useDispatch, useSelector } from "react-redux";
+import { registerUser } from "../store/authSlice";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -9,10 +10,16 @@ const Register = () => {
     password: "",
     confirmPassword: "",
   });
-  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const { register } = useAuth();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { loading, isAuthenticated } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
     setFormData({
@@ -57,16 +64,11 @@ const Register = () => {
       return;
     }
 
-    setIsLoading(true);
-
     const { confirmPassword, ...registerData } = formData;
-    const result = await register(registerData);
-
-    if (result.success) {
+    const result = await dispatch(registerUser(registerData));
+    if (result.type === "auth/register/fulfilled") {
       navigate("/dashboard");
     }
-
-    setIsLoading(false);
   };
 
   return (
@@ -178,10 +180,10 @@ const Register = () => {
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={loading}
             className="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? "Creating account..." : "Sign Up"}
+            {loading ? "Creating account..." : "Sign Up"}
           </button>
         </form>
 
