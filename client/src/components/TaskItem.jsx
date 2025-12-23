@@ -1,16 +1,16 @@
 import React from "react";
 
-const TaskItem = ({ task, onEdit, onDelete }) => {
+const TaskItem = ({ task, onEdit, onDelete, onComplete }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case "pending":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-amber-50 text-amber-700 border border-amber-200";
       case "in-progress":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-50 text-blue-700 border border-blue-200";
       case "completed":
-        return "bg-green-100 text-green-800";
+        return "bg-emerald-50 text-emerald-700 border border-emerald-200";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-700 border border-gray-200";
     }
   };
 
@@ -25,15 +25,27 @@ const TaskItem = ({ task, onEdit, onDelete }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 hover:shadow-md transition">
-      <div className="flex justify-between items-start">
+    <div
+      className={`bg-white rounded-lg border p-5 card-hover ${
+        task.status === "completed"
+          ? "border-gray-200 task-completed"
+          : "border-gray-200 hover:border-gray-300"
+      }`}
+    >
+      <div className="flex justify-between items-start gap-4">
         <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <h3 className="text-lg font-semibold text-gray-900">
+          <div className="flex items-center gap-2 mb-2">
+            <h3
+              className={`text-lg font-semibold ${
+                task.status === "completed"
+                  ? "text-gray-400 line-through"
+                  : "text-gray-900"
+              }`}
+            >
               {task.title}
             </h3>
             <span
-              className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(
+              className={`px-2.5 py-0.5 rounded-md text-xs font-medium capitalize ${getStatusColor(
                 task.status
               )}`}
             >
@@ -42,27 +54,82 @@ const TaskItem = ({ task, onEdit, onDelete }) => {
           </div>
 
           {task.description && (
-            <p className="text-gray-600 mb-3">{task.description}</p>
+            <p
+              className={`mb-3 text-sm ${
+                task.status === "completed" ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
+              {task.description}
+            </p>
           )}
 
-          <p className="text-xs text-gray-500">
-            Created: {formatDate(task.createdAt)}
+          <div className="flex items-center gap-4 text-xs text-gray-400">
+            <div className="flex items-center gap-1">
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span>{formatDate(task.createdAt)}</span>
+            </div>
             {task.updatedAt !== task.createdAt && (
-              <span className="ml-3">
-                Updated: {formatDate(task.updatedAt)}
-              </span>
+              <div className="flex items-center gap-1">
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+                <span>{formatDate(task.updatedAt)}</span>
+              </div>
             )}
-          </p>
+          </div>
         </div>
 
-        <div className="flex gap-2 ml-4">
+        <div className="flex flex-col gap-2">
+          {task.status !== "completed" && (
+            <button
+              onClick={() => onComplete(task)}
+              className="p-2 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-md transition-colors"
+              title="Mark as complete"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </button>
+          )}
           <button
             onClick={() => onEdit(task)}
-            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+            className="p-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
             title="Edit task"
           >
             <svg
-              className="w-5 h-5"
+              className="w-4 h-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -77,11 +144,11 @@ const TaskItem = ({ task, onEdit, onDelete }) => {
           </button>
           <button
             onClick={() => onDelete(task._id)}
-            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+            className="p-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
             title="Delete task"
           >
             <svg
-              className="w-5 h-5"
+              className="w-4 h-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"

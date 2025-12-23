@@ -1,3 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50;
+  }
+}
+
+@layer utilities {
+  .card-hover {
+    @apply hover:shadow-md transition-all duration-200;
+  }
+  
+  .task-completed {
+    @apply bg-gray-50/50;
+  }
+}
